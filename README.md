@@ -9,7 +9,7 @@ comme la t° intérieure/extérieure, la pluviomètrie ou un message quelconque 
 
 Cette version utilise un  Afficheur SURE 32x8 piloté par un Arduino + Ethernet Schield ou Arduino Ethernet Pro
 
-![](images/DE-DP13212_2_b.jpg)
+![](images/DE-DP13212_2_b.jpg){width=400px}
 ![](images/DE-DP13212_4_b.jpg)
 
 
