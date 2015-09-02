@@ -1,0 +1,106 @@
+= Horloge-Afficheur a matrice de led
+:toc:
+
+== Description
+
+Le but de ce montage, c'est une horloge évoluée qui permet d'afficher des informations supplémentaires comme la t° intérieure/extérieure, la pluviomètrie ou un message quelconque défilant.
+
+Cette version utilise un Afficheur SURE 32x8 (http://store.sure-electronics.com/de-dp13119) piloté par un Arduino + Ethernet Schield ou Arduino Ethernet Pro.
+Les commandes sonts envoyées sur socket UDP.
+
+
+image::images/DE-DP13212_6_b.jpg[caption="", title="", alt="", width="400", link="images/DE-DP13212_2_b.jpg"]
+image::images/DE-DP13212_4_b.jpg[caption="", title="", alt="", width="400", link="images/DE-DP13212_4_b.jpg"]
+
+Ce montage est basé sur un Arduino + Ethernet Schield ou Arduino Pro relié à un afficheur à matrice de led SURE à base de chip HT1632.
+Pour gérer cet afficheur, il y a une librairie de disponible sur Github: https://github.com/gauravmm/HT1632-for-Arduino
+
+Il y a eu une mise à jour de la lib que je n'ai pas testé depuis, donc à voir si fonctionnement identique.
+La lib que j'utlise est disponible dans  link:src/Arduino_Lib_HT1632.tgz[HT1632 Lib Arduino]
+
+---------------------------------------------------------------------------------------------------
+$ git clone https://github.com/gauravmm/HT1632-for-Arduino.git
+---------------------------------------------------------------------------------------------------
+
+Cette librairie fourni une police de caractère qui n'exploite pas la totalité de l'afficheur. 
+J'ai écrit une police au format 5x7 qui exploite toute la hauteur de l'afficheur.
+
+L'afficheur est prévu pour fonctionner en autonome comme horloge. Au boot, l'Arduino prends une configuration IP par DHCP se connecte à un serveur ntp en local et si echec à un 2ièmee sur internet.
+La boucle principale consiste à écoute sur un socket UDP pour afficher tout messages reçu suivant un protocol défini ci-dessous ainsi que de l'affichage de l'heure à chaque minute.
+
+
+== Cablage
+
+
+=== L'afficheur
+L'afficheur SURE nécessite 3 broches de données en plus de son alimentation en 5V.
+
+=== LDR
+Une LDR pour gérer la luminosité de l'afficheur en fonction de l'éclairage ambiant est connecté sur une broche analogique de l'Arduino.
+
+
+=== Un buzzer
+Un buzzer est relié à un port de l'Arduino pour signaler tout messages arrivant.
+Une commande permet de jouer sur les temps entre beep simple ou double pour différencier différent signals.
+
+
+=== Ports Arduino utlisés
+
+---------------------------------------------------------------------------------------------------
+BUZZERPIN    2		Pin => Buzzer => Gnd
+LDR	    A0		Analog 0 => LDR
+HT1632_CS1   5		Arduino Digital pin to Pin 3 HE-10 SURE Display (CS1)  	afficheur SURE 3208
+HT1632_WR    6		Arduino Digital pin to Pin 5 HE-10 SURE Display (WR)   	afficheur SURE 3208
+HT1632_DATA  7		Arduino Digital pin to Pin 7 HE-10 SURE Display (DATA)	afficheur SURE 3208
+Gnd Arduino		Arduino Gnd to Pin 11 HE-10 SURE Display (Gnd)		afficheur SURE 3208
++5V Arduino		Arduino +5V to Pin 12 HE-10 SURE Display (+5V)		afficheur SURE 3208
+---------------------------------------------------------------------------------------------------
+
+
+== Protocole en réception utlisé
+
+Il suffira qu'un client envoie un message UDP en respectant ce protocol pour afficher un texte ou emettre un beep:
+---------------------------------------------------------------------------------------------------
+	'Texte@'	: Texte aligné à gauche
+	'Texte#'	: Texte centré
+	'Texte*'	: Texte aligné à droite
+	'300,20,100$'	: Double Beep: Beep 300ms, pause 20ms, Beep 100ms	
+	'TexteLong%'  	: Défilement texte
+	'140716095900!'	: Maj horloge locale 					
+---------------------------------------------------------------------------------------------------
+
+
+Sketch Arduino disponible ici:  link:src/disp32x8udp.ino[disp32x8udp.ino]
+
+== Tests simple en ligne de commande Linux
+
+Envoie d'un double beep:
+---------------------------------------------------------------------------------------------------
+$ echo "300,20,100$"  | nc -u -w1 192.168.0.125 8888
+Ack
+---------------------------------------------------------------------------------------------------
+
+Envoie d'un message défialant:
+---------------------------------------------------------------------------------------------------
+$ echo  "Test afficheur Sure Display Arduino%" | nc -u -w1 192.168.0.125 8888
+Ack
+---------------------------------------------------------------------------------------------------
+
+=== Photos du montage
+
+[cols="^,^",]
+|=======================================================================
+|image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="Vue de l'arduino ethernet", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
+|image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
+|=======================================================================
+
+
+
+=== Vidéo
+Vue de l'afficheur en fonctionnement avec défilement de messages: 
+link:http://www.youtube.com/watch?v=1BIM9ogc6E4[Horloge-Afficheur a matrice de led]
+
+{nbsp}
+
+'''
+~20/7/2014~

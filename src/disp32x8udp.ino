@@ -3,138 +3,10 @@ disp32x8udp
 Afficheur SURE 32x8 piloté par un Arduino + Ethernet Schield
 */
 
-
-/*
-$ ino build
-$ ino upload -p /dev//USB_BUB  && picocom -b 115200 -d 8 -f n -p n /dev/USB_BUB 
-
-
-1/10/2014
-- Correction fonction heure hiver.
-- Correction affichage heure sans '0' en premier chiffre.
-- Ajout serveur ntp sur reseau local en premier et serveur ntp internet en second.
-
-
-20/7/2014
-Ajout cacul heure été/hiver:
-	        if ( (month >  3  &&  month < 10) ||  	// Cacule heure été.
-		   ( month ==  3  &&  day > 24  &&  (day - weekday) > 24  ) ||
-		   ( month == 10  &&  (day - weekday) < 25  ) ) 	timeZoneOffset = 7200 ;
-		 else timeZoneOffset = 3600 ;
-weekday = dim à sam (0..6) 
-
-Tableau de la dernière semaine de Mars avec les jours de la semaine (Dimanche à Samedi  = 0..6)
-La diagonale des '0' (dimanche) marque le changement d'heure:
-		       Mars
-		25 26 27 28 29 30 31
-Hiver		 1  2  3  4  5  6  0 <=		Eté
-		 2  3  4  5  6  0  1
-		 3  4  5  6  0  1  2
-		 4  5  6  0  1  2  3
-		 5  6  0  1  2  3  4
-		 6  0  1  2  3  4  5
-	      => 0  1  2  3  4  5  6
-	      
-		       Octobre
-		25 26 27 28 29 30 31
-Eté		 1  2  3  4  5  6  0 <=		Hiver
-		 2  3  4  5  6  0  1
-		 3  4  5  6  0  1  2
-		 4  5  6  0  1  2  3
-		 5  6  0  1  2  3  4
-		 6  0  1  2  3  4  5
-	      => 0  1  2  3  4  5  6
-
-Idem en octobre en inversant le coté de la diagonale été/hiver.
-
-
-19/7/2014
-Afficheur piloté par carte Ethernet Pro
-- Beep toutes les heures
-- Beep lors d'un affichage de message défilant.
-- Gère la luminosité afficheur avec une LDR.
-
-
-16/7/2014
-Ajout connexion serveur ntp pour mise à l'heure horloge locale au boot, à 11:59:50 et 23:59:50
-
-
-12/7/2014
-Arduino + Ethernet Schield ou  Arduino Pro
-Fonctionne comme un afficheur simple commandé par ethernet UDP
-N'affiche uniquement ce qu'il recoit sous ce protocol:
-
-En fin de texte '@' aligné à gauche		"Texte@"
-En fin de texte '#' centré			"Texte#"
-En fin de texte '*' aligné à droite		"Texte*"
-En fin de texte '$' beep n milli-secondes	"300$"
-En fin de texte '%' Défilement texte		"TexteLong%"
-En fin de texte '!' Maj horloge locale\n	"140716095900!"
-
-Arduino recoit un message UDP et retourne un ack:
----------------------------------------------------------------------
-$ picocom -b 115200 -d 8 -f n -p n /dev/arduino  
-picocom v1.7
-...
-Terminal ready
-
-Init. Arduino Disp32x8 UDP V20140712 ...
-Arduino is at 192.168.1.125
-Info. protocole en réception:
-'Texte@': Texte aligné à gauche
-'Texte#': Texte centré
-'Texte*': Texte aligné à droite
-'300$'  : Beep 300ms
-'TexteLong%'  : Défilement texte
->
-Fin init. Arduino.
-
-Received packet of size 7 from 192.168.1.4, port 54851
-Contents: 18:15#
-ExeCcmd: 18:15#
-Send response Ack
-
-Received packet of size 39 from 192.168.1.4, port 54851
-Contents: Attention porte garage restee ouverte%
-ExeCcmd: Attention porte garage restee ouverte%
-Send response Ack
-
-Received packet of size 9 from 192.168.1.4, port 54851
-Contents: -17.8°*
-ExeCcmd: -17.8&*
-Send response Ack
-
-
---------------------------------------------------
-Programme 'netcat' pour envoyé des message en UDP:
-$ ncat 192.168.1.125 8888 -u -v
-Ncat: Version 6.46 ( http://nmap.org/ncat )
-Ncat: Connected to 192.168.1.125:8888.
-18:15#
-Ack
-Attention porte garage restee ouverte%
-Ack
--17.8°*
-Ack
-
----------------------------------
-Script bash pour afficher l'heure:
-$ echo "300$"  | nc -u -w1 192.168.1.125 8888
-
-$ while sleep 60
-do
-echo  "$(date +%H:%M#)" | nc -u -w1 192.168.1.125 8888
-done
-
-*/
-
-
-
-
 #include <stdlib.h>
-#include <SPI.h>             	// Nécessaire depuis la version Arduino 0018
+#include <SPI.h> 
 #include <Ethernet.h>  
-#include <EthernetUdp.h>	// UDP library from: bjoern@cs.stanford.edu 12/30/2008
+#include <EthernetUdp.h>
 #include <font_5x7.h>
 #include <HT1632.h>
 #include <Time.h>  
@@ -155,26 +27,24 @@ done
 				// Arduino +5V to Pin 12 HE-10 SURE Display (+5V)		afficheur SURE 3208
 
 // Variables
-uint8_t luminosity = 0 ;
-char buffer[255] ; 		// Variable port série
+int luminosity = 0 ;
+char buffer[255] ; 
 int  nbpixels ;
 int  xpos ;
 unsigned long lumtimestamp = 0 ;
 
 
 //  ---------------------------------------------------------------------------
-byte mac[] = { 0x90, 0xA2, 0xDA, 0xXX, 0xXX, 0xXX };	// arduino
-IPAddress ip(192,168,1,125);
+byte mac[] = { 0x90, 0x00, 0x00, 0x00, 0x00, 0x00 };	// arduino
+IPAddress ip(192,168,0,125);
 IPAddress broadcast(192, 168, 1, 255);
 IPAddress dns1(192, 168, 1, 254);
 IPAddress gateway(192, 168, 1, 254 );			// the router's gateway address:
 IPAddress subnet( 255, 255, 255, 0 );			// the subnet:
 unsigned int localPort = 8888;      			// local port to listen on
 
-//IPAddress timeServer1(5,135,166,37);      		// ntp.deuza.net OK
-//IPAddress timeServer2(129, 6, 15, 28);  		// time.nist.gov OK
-IPAddress timeServer3(212, 83, 133, 52) ;		// Serveurs ntp du pool fr: 0.fr.pool.ntp.org	core-2.zeroloop.net (212, 83, 133, 52 ok), ntp-2.arkena.net (95.81.173.74) A tester
-IPAddress timeServer4(192, 168, 1, 4) ;			// ntp local
+IPAddress timeServer1(212, 83, 133, 52) ;		// Serveurs ntp du pool fr: 0.fr.pool.ntp.org	core-2.zeroloop.net (212, 83, 133, 52 ok), ntp-2.arkena.net (95.81.173.74) A tester
+IPAddress timeServer2(192, 168, 1, 4) ;			// serveur local avec daemon ntp
 long timeZoneOffset  ;	 				// Offset in seconds to your local time, par défaut heure d'été.
 unsigned long timestamp ;
 int secondes_courantes = 60 ;
@@ -189,6 +59,20 @@ char  ReplyBuffer[6] ;       				// Buffer of string to send back
 
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
+
+
+/*------------------------------------------------------------------------------*/
+void beep(int periode) ;
+void aff_32x8_defilltxt(char text[]) ;
+void aff_32x8_txt(int x, char text[]) ;
+void majTimeNTP() ;
+unsigned long getNTPEpoch(IPAddress &addr) ;
+int suppAccentUTF8Str(char *chaine) ;
+void dbeep(int b1, int p1, int b2) ;
+void sendNTPpacket(IPAddress &address) ;
+
+/*------------------------------------------------------------------------------*/
+
 
 /*------------------------------------------------------------------------------*/
 /* Setup									*/
@@ -218,7 +102,7 @@ void setup()
 	Serial.println(F("'Texte@': Texte aligné à gauche")) ;
 	Serial.println(F("'Texte#': Texte centré")) ;
 	Serial.println(F("'Texte*': Texte aligné à droite")) ;
-	Serial.println(F("'300$'  : Beep 300ms")) ;
+	Serial.println(F("'300,20,100$'  : Double Beep: Beep 300ms, pause 20ms, Beep 100ms")) ;	// 300,0,0 pour un simple beep.
 	Serial.println(F("'TexteLong%'  : Défilement texte")) ;
 	Serial.println(F("'140716095900!'  : Maj horloge locale\n")) ;
 
@@ -249,8 +133,8 @@ void setup()
 /*------------------------------------------------------------------------------*/
 void majTimeNTP()
 {
-	timestamp = getNTPEpoch(timeServer4) ;
-	if (! timestamp) timestamp = getNTPEpoch(timeServer3) ;
+	timestamp = getNTPEpoch(timeServer2) ;
+	if (! timestamp) timestamp = getNTPEpoch(timeServer1) ;
 	if (timestamp)
 	{
 		Serial.print(F("Maj local time from NTP: ")); 
@@ -260,7 +144,6 @@ void majTimeNTP()
 		   ( month() == 10  &&  (day() - weekday()) < 25) )   timeZoneOffset = 7200 ;
 		else timeZoneOffset = 3600 ;			// Init time locale.
 		setTime(timestamp + timeZoneOffset) ;
-		adjustTime(1); 					// Décalage de 3s de retard avec rpi.
 		sprintf(time_str, "%d/%d/%d, %d:%02d:%02d\n", day(), month(), year(), hour(), minute(), second() ) ;  
 		Serial.println(time_str);
 	}
@@ -330,7 +213,7 @@ unsigned long getNTPEpoch(IPAddress &addr)
 /*------------------------------------------------------------------------------*/
 // Send an NTP request to the time server at the given address 
 /*------------------------------------------------------------------------------*/
-unsigned long sendNTPpacket(IPAddress &address)
+void sendNTPpacket(IPAddress &address)
 {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, PACKET_SIZE); 
@@ -401,7 +284,8 @@ int ExecDisplayCmd(char buff[])
 	int lastcharpos ;
 	char champs[3] ;
 	int heures, minutes, secondes, jour, mois, annee ;
-
+	int beep1, pause1, beep2 ;
+	
 	suppAccentUTF8Str(buff)	;							// Remplace tout code caractères  UTF8 accentués et '°'
 	lastcharpos = strlen(buff) - 1 ;
 	Serial.print(F("ExecDisplayCmd: "));
@@ -432,13 +316,14 @@ int ExecDisplayCmd(char buff[])
 		break;
 		case '%':    // Défile Text
 			buff[lastcharpos] = '\0' ;
-			beep(100) ; delay(200) ; beep(100) ;
+			dbeep(100, 200, 100) ;
 			aff_32x8_defilltxt(buff) ;
 			SendResponse(ReplyBuffer) ;
 		break;
 		case '$':    // Beep
 			buff[lastcharpos] = '\0' ;
-			beep(atoi(buff)) ;
+			sscanf(buff, "%d, %d, %d", &beep1, &pause1, &beep2);
+			dbeep(beep1, pause1, beep2) ;
 			SendResponse(ReplyBuffer) ;
 		break;
 		case '!':    // Commande mise à l'heure avec chaine 'YYMMddhhmmss!'.
@@ -505,12 +390,19 @@ void aff_32x8_defilltxt(char text[])
 /*------------------------------------------------------------------------------*/
 void beep(int periode)
 {
-    int res ;
-    char cmd ;
-
     digitalWrite(BUZZERPIN, HIGH);     	// Active buzzer,
     delay(periode);		    	// Pendant periode,
     digitalWrite(BUZZERPIN, LOW);      	// Eteint buzzer.
+}
+
+
+/* Fonction buzzer: dbeep: Double beep						*/
+void dbeep(int b1, int p1, int b2)
+{
+	beep (b1) ;
+	if (p1 == 0) return ;		// Cas simple beep.
+	delay(p1);
+	beep (b2) ;
 }
 
 
@@ -555,17 +447,22 @@ void loop()
 	
 		if ( secondes_courantes == 0)
 		{
-			sprintf( time_str, "%d:%02d", hour(), minute() ) ; 
+			sprintf( time_str, "%02d:%02d", hour(), minute() ) ;
+			if ( time_str[0] == '0' ) time_str[0] = ' ' ;	// Un ' ' à la place du '0' comme dans focntion python strftime("%k:%M")
 			Serial.print(F("Local Time: "));    	
 			Serial.println(time_str);    	
-			aff_32x8_txt(3, time_str) ;
+			aff_32x8_txt( (32 - HT1632.getTextWidth(time_str, FONT_5X7_WIDTH, FONT_5X7_HEIGHT)) >> 1 , time_str) ;
 			if ( minute() == 0 ) beep(40) ;					// Si mn à 0, beep.
 			
-			if ( (minute() % 5) == 0 )					// Toutes les 5mn
-			{
+//			if ( (minute() % 5) == 0 )					// Toutes les 5mn
+//			{
 				luminosity = ((1024 - analogRead(0)) / 64) + 1 ;	// analogRead retourne int 0 to 1023
-				if (luminosity == 17) luminosity = 16 ;
 				Serial.print(F("Luminosity: "));    	
+				Serial.print(luminosity);    	
+				luminosity -= 2 ;					// -2 car trop lumineux
+				if (luminosity < 1) luminosity = 1 ;
+				if (luminosity > 16) luminosity = 16 ;
+				Serial.print(F(" "));    	
 				Serial.println(luminosity);    	
 				HT1632.setBrightness(luminosity) ;			// Modifie la luminosité de l'afficheur en fonction de celle ambiamte.
 				if ( year() == 1970 ) 					// Vérifie toutes les 5mn si à la bonne date (cas pb serveur ntp au reboot).
@@ -573,11 +470,11 @@ void loop()
 					//Ethernet.maintain(); 				// dhcp renew
 					majTimeNTP() ;
 				}
-			}
+//			}
 		}
 		else if ( secondes_courantes == 50)
 		{
-			if ( (hour() == 2 || hour() == 11) && minute() == 59 ) { beep(30) ; majTimeNTP() ; }
+			if ( (hour() == 2 || hour() == 11) && minute() == 59 ) { beep(20) ; majTimeNTP() ; }
 		}
 	}
 
