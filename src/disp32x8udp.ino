@@ -1,6 +1,6 @@
 /*
 disp32x8udp
-Afficheur SURE 32x8 piloté par un Arduino + Ethernet Schield
+Horloge ethernet sur afficheur SURE 32x8 piloté par un Arduino + Ethernet Schield
 */
 
 #include <stdlib.h>

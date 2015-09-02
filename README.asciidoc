@@ -25,8 +25,10 @@ $ git clone https://github.com/gauravmm/HT1632-for-Arduino.git
 Cette librairie fourni une police de caractère qui n'exploite pas la totalité de l'afficheur. 
 J'ai écrit une police au format 5x7 qui exploite toute la hauteur de l'afficheur.
 
-L'afficheur est prévu pour fonctionner en autonome comme horloge. Au boot, l'Arduino prends une configuration IP par DHCP se connecte à un serveur ntp en local et si echec à un 2ièmee sur internet.
-La boucle principale consiste à écoute sur un socket UDP pour afficher tout messages reçu suivant un protocol défini ci-dessous ainsi que de l'affichage de l'heure à chaque minute.
+L'afficheur est prévu pour fonctionner en autonome comme horloge. Au boot, l'Arduino prends une configuration IP par DHCP se connecte à un serveur ntp en local et 
+si echec à un 2ième sur internet.
+La boucle principale consiste à écoute sur un socket UDP pour afficher tout messages reçu suivant un protocol défini ci-dessous ainsi 
+que de l'affichage de l'heure à chaque minute.
 
 
 == Cablage
@@ -54,6 +56,9 @@ HT1632_WR    6		Arduino Digital pin to Pin 5 HE-10 SURE Display (WR)   	afficheu
 HT1632_DATA  7		Arduino Digital pin to Pin 7 HE-10 SURE Display (DATA)	afficheur SURE 3208
 Gnd Arduino		Arduino Gnd to Pin 11 HE-10 SURE Display (Gnd)		afficheur SURE 3208
 +5V Arduino		Arduino +5V to Pin 12 HE-10 SURE Display (+5V)		afficheur SURE 3208
+
+PINs 10,11,12,13 et 4	Cablage I/O Ethernet Schield + (SD) 
+
 ---------------------------------------------------------------------------------------------------
 
 
@@ -86,18 +91,57 @@ $ echo  "Test afficheur Sure Display Arduino%" | nc -u -w1 192.168.0.125 8888
 Ack
 ---------------------------------------------------------------------------------------------------
 
+
+== Sortie debug sur port série de l'Arduino
+
+---------------------------------------------------------------------------------------------------
+$ picocom -b 115200 -d 8 -f n -p n /dev/arduino
+picocom v1.7
+...
+Terminal ready
+
+Init. Arduino Disp32x8 UDP V20140712 ...
+Arduino is at 192.168.0.125
+Info. protocole en réception:
+'Texte@': Texte aligné à gauche
+'Texte#': Texte centré
+'Texte*': Texte aligné à droite
+'300,20,100$': Double Beep: Beep 300ms, pause 20ms, Beep 100ms	
+'TexteLong%': Défilement texte
+'140716095900!': Maj horloge locale 					
+>
+Fin init. Arduino.
+
+Received packet of size 7 from 192.168.0.4, port 54851
+Contents: 18:15#
+ExeCcmd: 18:15#
+Send response Ack
+
+Received packet of size 39 from 192.168.0.4, port 54851
+Contents: Attention porte garage restee ouverte%
+ExeCcmd: Attention porte garage restee ouverte%
+Send response Ack
+
+Received packet of size 9 from 192.168.0.4, port 54851
+Contents: -17.8°*
+ExeCcmd: -17.8&*
+Send response Ack
+
+---------------------------------------------------------------------------------------------------
+
+
 === Photos du montage
 
-[cols="^,^",]
-|=======================================================================
-|image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="Vue de l'arduino ethernet", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
-|image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
-|=======================================================================
+image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="Vue de l'arduino ethernet au dos de l'afficheur", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
+{nbsp}
+
+image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
 
 
 
 === Vidéo
 Vue de l'afficheur en fonctionnement avec défilement de messages: 
+
 link:http://www.youtube.com/watch?v=1BIM9ogc6E4[Horloge-Afficheur a matrice de led]
 
 {nbsp}
