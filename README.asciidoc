@@ -10,25 +10,26 @@ Cette version utilise un Afficheur à matrice de leds SURE 32x8 (http://store.su
 image::images/DE-DP13212_6_b.jpg[caption="", title="", alt="", width="400", link="images/DE-DP13212_2_b.jpg"]
 image::images/DE-DP13212_4_b.jpg[caption="", title="", alt="", width="400", link="images/DE-DP13212_4_b.jpg"]
 
-Ce montage est basé sur un Arduino + Ethernet Schield ou Arduino Pro relié à un afficheur à matrice de led SURE à base de chip HT1632.
+Ce montage est basé sur un Arduino + Ethernet Schield ou Arduino Pro relié à un afficheur à matrice de led SURE à base de chip *HT1632*.
 Pour gérer cet afficheur, il y a une librairie de disponible sur Github: https://github.com/gauravmm/HT1632-for-Arduino
-
-Il y a eu une mise à jour de la lib que je n'ai pas testé depuis, donc à voir si fonctionnement identique.
-La lib que j'utlise est disponible dans  link:src/Arduino_Lib_HT1632.tgz[HT1632 Lib Arduino]
 
 ---------------------------------------------------------------------------------------------------
 $ git clone https://github.com/gauravmm/HT1632-for-Arduino.git
 ---------------------------------------------------------------------------------------------------
 
+Il y a eu une mise à jour de la lib que je n'ai pas testé depuis, donc à voir si fonctionnement identique.
+La lib que j'utlise est disponible dans  link:src/Arduino_Lib_HT1632.tgz[HT1632 Lib Arduino]
+
 Cette librairie fourni une police de caractère qui n'exploite pas la totalité de l'afficheur. 
 J'ai fourni une police au format 5x7 qui exploite la hauteur de l'afficheur utilisé ici, le 32x8 leds.
 
-Il est possible de chainer ces afficheur pour affichage plus grand (non testé dans mon cas).
+Il est possible de chainer ces afficheurs pour affichage plus grand (non testé dans mon cas).
 
 L'afficheur est prévu pour fonctionner en autonome comme horloge avec mise à l'heure 2 fois par jour par NTP.
 
 Au boot, l'Arduino prends une configuration IP par DHCP met à jour l'hotloge interne (lib Arduino *Time*) par NTP sur serveur local et 
 si echec sur un 2ième par internet.
+
 La boucle principale consiste à afficher l'heure à chaque miniute ainsi qu'à écouter sur un socket UDP pour afficher tout message reçu suivant un protocol défini ci-dessous. 
 
 
