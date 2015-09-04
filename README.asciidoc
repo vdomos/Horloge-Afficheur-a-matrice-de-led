@@ -5,10 +5,11 @@
 
 Ce montage est une horloge évoluée qui permet d'afficher des informations supplémentaires comme la t° intérieure/extérieure, la pluviomètrie ou un message quelconque défilant.
 
-Cette version utilise un Afficheur à matrice de leds SURE 32x8 (http://store.sure-electronics.com/de-dp13119) piloté par un Arduino + Ethernet Schield ou Arduino Ethernet Pro.
-
 image::images/DE-DP13212_6_b.jpg[caption="", title="", alt="", width="400", link="images/DE-DP13212_2_b.jpg"]
 image::images/DE-DP13212_4_b.jpg[caption="", title="", alt="", width="400", link="images/DE-DP13212_4_b.jpg"]
+
+
+Cette version utilise un Afficheur à matrice de leds SURE 32x8 (http://store.sure-electronics.com/de-dp13119) piloté par un Arduino + Ethernet Schield ou Arduino Ethernet Pro.
 
 Ce montage est basé sur un Arduino + Ethernet Schield ou Arduino Pro relié à un afficheur à matrice de led SURE à base de chip *HT1632*.
 Pour gérer cet afficheur, il y a une librairie de disponible sur Github: https://github.com/gauravmm/HT1632-for-Arduino
@@ -64,6 +65,9 @@ PINs 10,11,12,13 et 4	Cablage I/O Ethernet Schield + (SD)
 
 ---------------------------------------------------------------------------------------------------
 
+image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="Vue de l'arduino ethernet au dos de l'afficheur", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
+
+
 
 == Protocole en réception utlisé
 
@@ -78,7 +82,7 @@ Il suffira qu'un client envoie un message UDP en respectant ce protocol pour aff
 ---------------------------------------------------------------------------------------------------
 
 
-Sketch Arduino disponible ici:  link:src/disp32x8udp.ino[disp32x8udp.ino]
+Sketch Arduino disponible ici:  link:src/disp32x8udp.ino[disp32x8udp.ino] compilé sur Arduino IDE 1.0.5.
 
 == Tests simples en ligne de commande Linux
 
@@ -134,19 +138,20 @@ Send response Ack
 ---------------------------------------------------------------------------------------------------
 
 
-=== Photos du montage
+=== Photos de l'afficheur
 
-image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="Vue de l'arduino ethernet au dos de l'afficheur", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
+image:images/HorlogeAfficheurMatriceLed_ph3.jpg[caption="", title="", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph3.jpg"]
+
 {nbsp}
 
-image:images/HorlogeAfficheurMatriceLed_ph1.jpg[caption="", title="", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph1.jpg"]
+image:images/HorlogeAfficheurMatriceLed_ph2.jpg[caption="", title="", alt="", width="500", link="images/HorlogeAfficheurMatriceLed_ph2.jpg"]
 
 
 
 === Vidéo
 Vue de l'afficheur en fonctionnement avec défilement de messages: 
 
-link:http://www.youtube.com/watch?v=1BIM9ogc6E4[Horloge-Afficheur a matrice de led]
+link:http://youtu.be/dYYdhkq7LNA[Horloge-Afficheur a matrice de led]
 
 {nbsp}
 
